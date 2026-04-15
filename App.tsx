@@ -1,55 +1,59 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import {Slider} from "react-native-elements";
-// Define the props for the SliderComponent
-type SliderComponentProps = {};
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from "react-native";
+import { BottomSheet } from "@rneui/themed";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
-// Main App component
-const AppColorRGB: React.FunctionComponent<SliderComponentProps> = () => {
-  const [red, setRed] = useState(0);
-  const [green, setGreen] = useState(0);
-  const [blue, setBlue] = useState(0);
+const App = () => {
+  const [screen, setScreen] = useState("Principal");
+  const [isVisible, setIsVisible] = useState(false);
+  const menuItems = ["Principal", "Vendas", "Cadastro"];
+
+  const renderScreen = () => {
+    switch (screen) {
+      case "Principal":
+        return <Text>Principal Screen</Text>;
+      case "Vendas":
+        return <Text>Vendas Screen</Text>;
+      case "Cadastro":
+        return <Text>Cadastro Screen</Text>;
+      default:
+        return <Text>Principal Screen</Text>;
+    }
+  }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Escala de cores RGB</Text>
-      <View
-        style={[
-          styles.colorBox,
-          { backgroundColor: `rgb(${red}, ${green}, ${blue})` },
-        ]}
-      />
-      <Text style={styles.label}>Vermelho: {red}</Text>
-      <Slider
-        value={red}
-        onValueChange={(value) => setRed(value)}
-        minimumValue={0}
-        maximumValue={255}
-        step={1}
-        thumbStyle={styles.thumb}
-        trackStyle={styles.track}
-      />
-      <Text style={styles.label}>Verde: {green}</Text>
-      <Slider
-        value={green}
-        onValueChange={(value) => setGreen(value)}
-        minimumValue={0}
-        maximumValue={255}
-        step={1}
-        thumbStyle={styles.thumb}
-        trackStyle={styles.track}
-      /> 
-      <Text style={styles.label}>Azul: {blue}</Text>
-      <Slider
-        value={blue}
-        onValueChange={(value) => setBlue(value)}
-        minimumValue={0}
-        maximumValue={255}
-        step={1}
-        thumbStyle={styles.thumb}
-        trackStyle={styles.track}
-      />  
-    </View>
+    <SafeAreaProvider>
+      <View style={styles.container}>
+        {renderScreen()}
+        <TouchableOpacity onPress={() => setIsVisible(true)}>
+          <Text style={styles.openMenuText}>Open Menu</Text>
+        </TouchableOpacity>
+        {Platform.OS === "web" ? (
+          isVisible ? (
+            <View style={styles.webOverlay}>
+              <TouchableOpacity style={styles.webBackdrop} onPress={() => setIsVisible(false)} />
+              <View style={styles.bottomSheet}>
+                {menuItems.map((item) => (
+                  <TouchableOpacity key={item} onPress={() => { setScreen(item); setIsVisible(false); }}>
+                    <Text>{item}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          ) : null
+        ) : (
+          <BottomSheet isVisible={isVisible} onBackdropPress={() => setIsVisible(false)}>
+            <View style={styles.bottomSheet}>
+              {menuItems.map((item) => (
+                <TouchableOpacity key={item} onPress={() => { setScreen(item); setIsVisible(false); }}>
+                  <Text>{item}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </BottomSheet>
+        )}
+      </View>
+    </SafeAreaProvider>
   );
 };
 
@@ -58,30 +62,29 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  bottomSheet: {
     padding: 20,
+    backgroundColor: "white",
+    borderRadius: 12,
+    minWidth: 220,
+    gap: 12,
   },
-  header:{
-    fontSize:24,
-    marginBottom:20,
+  webOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "flex-end",
   },
-  colorBox: {
-    width: 200,
-    height: 200,
-    marginBottom: 20,
+  webBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.25)",
   },
-  label: {
+  openMenuText: {
     fontSize: 18,
-    marginVertical: 10,
-  },
-  thumb: {
-    height: 20,
-    width: 20,
-    backgroundColor: "blue",
-  },
-  track: {
-    height: 10,
+    backgroundColor: "#007AFF",
+    color: "white",
+    padding: 10,
     borderRadius: 5,
-    backgroundColor: "lightgray",
   },
 });
-export default AppColorRGB;
+
+export default App;
